@@ -1,0 +1,64 @@
+plugins {
+    id("java-library")
+    id("com.netflix.dgs.codegen")
+}
+
+dependencies {
+    api("com.fasterxml.jackson.core:jackson-databind:2.+")
+}
+
+private URL getUrl(String projectVariant) {
+    if (projectVariant =~ /ghes-\d+\.\d+/) {
+        return new URL("https://docs.github.com/public/${projectVariant}/schema.docs-enterprise.graphql")
+    } else {
+        return new URL("https://docs.github.com/public/${projectVariant}/schema.docs.graphql")
+    }
+}
+
+var projectVariant = project.name.replace("javacat-graphql-", "")
+
+def downloadSchema = tasks.register("downloadSchema") {
+    def schemaPath = "${projectDir}/build/resources/main/schema.graphqls"
+    doLast {
+        file(schemaPath).text = getUrl(projectVariant).text
+    }
+    onlyIf {
+        !file(schemaPath).exists()
+    }
+    inputs.property("projectVariant", projectVariant)
+    outputs.file(schemaPath)
+}
+
+generateJava {
+    dependsOn(downloadSchema)
+    schemaPaths = ["${projectDir}/build/resources/main/schema.graphqls"]
+    packageName = "com.github.rahulsom.javacat.graphql"
+    generateClientv2 = true
+    includeQueries = [""]
+    includeMutations = [""]
+
+    typeMapping = [
+            "Base64String"   : "java.lang.String",
+            "BigInt"         : "java.math.BigInteger",
+            "Date"           : "java.time.LocalDate",
+            "DateTime"       : "java.time.LocalDateTime",
+            "GitObjectID"    : "java.lang.String",
+            "GitRefname"     : "java.lang.String",
+            "GitSSHRemote"   : "java.lang.String",
+            "GitTimestamp"   : "java.time.OffsetDateTime",
+            "HTML"           : "java.lang.String",
+            "PreciseDateTime": "java.time.OffsetDateTime",
+            "URI"            : "java.net.URI",
+            "X509Certificate": "java.lang.String",
+    ]
+
+    doLast {
+        delete(files("${project.buildDir}/generated/sources/dgs-codegen/**/DgsConstants.java"))
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}

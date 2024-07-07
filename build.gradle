@@ -5,6 +5,9 @@ buildscript {
     }
 }
 
+plugins {
+    id("com.netflix.dgs.codegen").version("6.2.2").apply(false)
+}
 
 subprojects {
     repositories {

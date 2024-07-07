@@ -1,2 +1,19 @@
 rootProject.name = "javacat"
 
+private void createProject(variant, String ghesVersion) {
+    def projectName = "javacat-$variant-$ghesVersion"
+    if (!file(projectName).exists()) {
+        file(projectName).mkdirs()
+    }
+    include(projectName)
+    project(":${projectName}").buildFileName = "../${variant}.gradle"
+}
+
+//createProject("graphql", "ghec")
+//createProject("graphql", "fpt")
+createProject("graphql", "ghes-3.13")
+createProject("graphql", "ghes-3.12")
+createProject("graphql", "ghes-3.11")
+createProject("graphql", "ghes-3.10")
+createProject("graphql", "ghes-3.9")
+
