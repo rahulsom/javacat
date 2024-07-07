@@ -1,0 +1,70 @@
+name: Gradle Build
+
+on:
+  pull_request:
+    branches: ['*']
+  push:
+    branches: ['*']
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build:
+    name: "Build with Gradle"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4.1.4
+
+    - uses: gradle/wrapper-validation-action@v3
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: 21
+        distribution: zulu
+
+    - uses: gradle/gradle-build-action@v3
+      name: Setup Gradle
+
+    - name: Build
+      id: gradle
+      run: ./gradlew build
+
+    - name: Build Snapshot
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      env:
+        ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.ORG_GRADLE_PROJECT_sonatypePassword }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
+      run: ./gradlew build snapshot
+
+    - name: Build Candidate
+      if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-rc')
+      env:
+        ORG_GRADLE_PROJECT_sonatypeUsername: rahulsom
+        ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.ORG_GRADLE_PROJECT_sonatypePassword }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
+      run: ./gradlew -Prelease.useLastTag=true build candidate
+
+    - name: Build Final
+      if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-rc')
+      env:
+        ORG_GRADLE_PROJECT_sonatypeUsername: rahulsom
+        ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.ORG_GRADLE_PROJECT_sonatypePassword }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
+      run: ./gradlew -Prelease.useLastTag=true build final
+
+    - name: "Add build scan URL as PR comment"
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request' && failure()
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
+          })
