@@ -1,0 +1,13 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+}
