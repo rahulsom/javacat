@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     id("com.netflix.dgs.codegen")
+    id("com.github.rahulsom.waena.published")
 }
 
 dependencies {
@@ -62,3 +63,5 @@ java {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
+
+javadoc.options.addStringOption('Xdoclint:none', '-quiet')

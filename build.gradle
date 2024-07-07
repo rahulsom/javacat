@@ -1,3 +1,5 @@
+import nebula.plugin.contacts.ContactsExtension
+
 buildscript {
     repositories {
         gradlePluginPortal()
@@ -6,7 +8,22 @@ buildscript {
 }
 
 plugins {
+    id("com.github.rahulsom.waena.root").version("0.6.3")
+    id("com.github.rahulsom.waena.published").version("0.6.3").apply(false)
     id("com.netflix.dgs.codegen").version("6.2.2").apply(false)
+}
+
+allprojects {
+    group = "com.github.rahulsom"
+}
+
+extensions.findByType(ContactsExtension).with {
+    validateEmails = true
+    addPerson("rahulsom@noreply.github.com", {
+        moniker("Rahul Somasunderam")
+        roles("owner")
+        github("https://github.com/rahulsom")
+    })
 }
 
 subprojects {
