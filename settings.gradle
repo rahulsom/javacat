@@ -1,3 +1,14 @@
+plugins {
+    id("com.gradle.develocity").version("3.17.5")
+}
+
+develocity {
+    buildScan {
+        termsOfUseUrl.set("https://gradle.com/terms-of-service")
+        termsOfUseAgree.set("yes")
+    }
+}
+
 rootProject.name = "javacat"
 
 private void createProject(variant, String ghesVersion) {
