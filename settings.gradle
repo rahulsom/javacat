@@ -26,5 +26,4 @@ createProject("graphql", "ghes-3.13")
 createProject("graphql", "ghes-3.12")
 createProject("graphql", "ghes-3.11")
 createProject("graphql", "ghes-3.10")
-createProject("graphql", "ghes-3.9")
 
