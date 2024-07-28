@@ -1,38 +1,40 @@
+import de.undercouch.gradle.tasks.download.Download
+
 plugins {
     id("java-library")
     id("com.netflix.dgs.codegen")
     id("com.github.rahulsom.waena.published")
+    id("de.undercouch.download")
 }
 
 dependencies {
     api("com.fasterxml.jackson.core:jackson-databind:2.+")
 }
 
-private URL getUrl(String projectVariant) {
+private String getUrl(String projectVariant) {
     if (projectVariant =~ /ghes-\d+\.\d+/) {
-        return new URL("https://docs.github.com/public/${projectVariant}/schema.docs-enterprise.graphql")
+        "https://docs.github.com/public/${projectVariant}/schema.docs-enterprise.graphql"
     } else {
-        return new URL("https://docs.github.com/public/${projectVariant}/schema.docs.graphql")
+        "https://docs.github.com/public/${projectVariant}/schema.docs.graphql"
     }
 }
 
 var projectVariant = project.name.replace("javacat-graphql-", "")
 
-def downloadSchema = tasks.register("downloadSchema") {
-    def schemaPath = "${projectDir}/build/resources/main/schema.graphqls"
-    doLast {
-        file(schemaPath).text = getUrl(projectVariant).text
-    }
-    onlyIf {
-        !file(schemaPath).exists()
-    }
-    inputs.property("projectVariant", projectVariant)
-    outputs.file(schemaPath)
+def downloadSchema = tasks.register("downloadSchema", Download) {
+    src getUrl(projectVariant)
+    dest "${project.layout.buildDirectory.get()}/resources/main/schema.graphqls"
+    onlyIfModified true
+    tempAndMove true
+    useETag true
+
+    inputs.property("url", getUrl(projectVariant))
+    outputs.file("${project.layout.buildDirectory.get()}/resources/main/schema.graphqls")
 }
 
 generateJava {
     dependsOn(downloadSchema)
-    schemaPaths = ["${projectDir}/build/resources/main/schema.graphqls"]
+    schemaPaths = ["${project.layout.buildDirectory.get()}/resources/main/schema.graphqls"]
     packageName = "com.github.rahulsom.javacat.graphql"
     generateClientv2 = true
     includeQueries = [""]
@@ -54,7 +56,7 @@ generateJava {
     ]
 
     doLast {
-        delete(files("${project.buildDir}/generated/sources/dgs-codegen/**/DgsConstants.java"))
+        delete(files("${project.layout.buildDirectory.get()}/generated/sources/dgs-codegen/**/DgsConstants.java"))
     }
 }
 
@@ -65,12 +67,4 @@ java {
 }
 
 javadoc.options.addStringOption('Xdoclint:none', '-quiet')
-
-contacts {
-  validateEmails = true
-  'rahulsom@noreply.github.com' {
-    moniker("Rahul Somasunderam")
-    roles("owner")
-    github("https://github.com/rahulsom/javacat")
-  }
-}
+tasks.processResources.dependsOn(downloadSchema)

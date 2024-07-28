@@ -27,3 +27,11 @@ createProject("graphql", "ghes-3.12")
 createProject("graphql", "ghes-3.11")
 createProject("graphql", "ghes-3.10")
 
+//createProject("rest", "ghec")
+//createProject("rest", "fpt")
+createProject("rest", "ghes-3.13")
+createProject("rest", "ghes-3.12")
+createProject("rest", "ghes-3.11")
+createProject("rest", "ghes-3.10")
+
+include('javacat-common')
