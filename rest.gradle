@@ -1,0 +1,64 @@
+import codegen.Main
+import de.undercouch.gradle.tasks.download.Download
+
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:24.1.0'
+    compileOnly 'org.springframework:spring-web:5.3.9'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+    api("com.squareup.retrofit2:retrofit:2.9.0")
+    api project(":javacat-common")
+}
+
+
+private String getUrl(String projectVariant) {
+    def path = projectVariant == 'fpt' ? 'api.github.com' : projectVariant
+    return "https://github.com/github/rest-api-description/raw/main/descriptions-next/${path}/${path}.json"
+}
+
+var projectVariant = project.name.replace("javacat-rest-", "")
+
+def downloadSchema = tasks.register("downloadSchema", Download) {
+    src getUrl(projectVariant)
+    dest "${project.layout.buildDirectory.get()}/generated/resources/main/schema.json"
+    onlyIfModified true
+    tempAndMove true
+    useETag true
+
+    inputs.property("url", getUrl(projectVariant))
+    outputs.file("${project.layout.buildDirectory.get()}/generated/resources/main/schema.json")
+}
+
+def generateJava = tasks.register("generateJava") {
+    dependsOn(downloadSchema)
+    inputs.file("${project.layout.buildDirectory.get()}/generated/resources/main/schema.json")
+    inputs.dir("${rootDir}/buildSrc/src")
+    inputs.file("${rootDir}/buildSrc/build.gradle")
+    doLast {
+        file("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen").mkdirs()
+
+        new Main().process(
+                file("${project.layout.buildDirectory.get()}/generated/resources/main/schema.json"),
+                file("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen"),
+                "com.github.rahulsom.javacat.rest"
+        )
+    }
+    outputs.dir("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen")
+}
+
+tasks.compileJava.dependsOn(generateJava)
+tasks.processResources.dependsOn(downloadSchema)
+sourceSets.main.java.srcDir("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen")
+sourceSets.main.resources.srcDir("${project.layout.buildDirectory.get()}/generated/resources/main")
+
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
