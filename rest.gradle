@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
     compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'org.springframework:spring-web:5.3.9'
+    compileOnly 'org.springframework:spring-web:5.3.37'
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
