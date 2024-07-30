@@ -3,6 +3,7 @@ import de.undercouch.gradle.tasks.download.Download
 
 plugins {
     id("java-library")
+    id("com.github.rahulsom.waena.published")
 }
 
 dependencies {
@@ -52,10 +53,18 @@ def generateJava = tasks.register("generateJava") {
 }
 
 tasks.compileJava.dependsOn(generateJava)
+tasks.sourcesJar.dependsOn(generateJava)
+tasks.javadocJar.dependsOn(generateJava)
 tasks.processResources.dependsOn(downloadSchema)
 sourceSets.main.java.srcDir("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen")
 sourceSets.main.resources.srcDir("${project.layout.buildDirectory.get()}/generated/resources/main")
 
+tasks.withType(Javadoc).configureEach {
+    failOnError false
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
+}
 
 java {
     toolchain {
