@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-    id("com.github.rahulsom.waena.root").version("0.6.3")
+    id("com.github.rahulsom.waena.root").version("0.6.6")
     id("com.github.rahulsom.waena.published").version("0.6.3").apply(false)
     id("com.netflix.dgs.codegen").version("6.2.2").apply(false)
 }
