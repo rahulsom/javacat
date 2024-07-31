@@ -5,18 +5,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
 public class FancySerializer<T> extends StdSerializer<T> {
     public record GettableField<T, X>(Class<X> type, Function<T, X> getter) {}
 
-    private static final ObjectMapper om = new ObjectMapper();
+    private static final ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 
     public FancySerializer(Class<T> vc, Mode mode, List<GettableField<T, ?>> fields) {
         super(vc);
