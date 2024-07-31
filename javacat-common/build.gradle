@@ -5,11 +5,12 @@ plugins {
 
 dependencies {
     compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'org.projectlombok:lombok:1.+'
-    annotationProcessor 'org.projectlombok:lombok:1.+'
-    implementation("org.slf4j:slf4j-api:1.7.30")
+    compileOnly 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    implementation "org.slf4j:slf4j-api:1.7.30"
 
-    api 'com.fasterxml.jackson.core:jackson-databind:2.+'
+    api 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0'
 }
 
 java {
