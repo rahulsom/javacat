@@ -110,11 +110,12 @@ object PathsBuilder {
                         1 -> atomicMethod.operationId.split('/')[1].camelCase()
                         else -> atomicMethod.operationId.split('/')[1].camelCase() + suffixContentType(contentType)
                     }
+                    val pathParam = if (atomicMethod.path == "/") """"?"""" else """"${atomicMethod.path.substring(1)}""""
                     typeDef.rawBody(
                         listOf(
                             "/**\n * ${javadoc}\n */",
                             acceptHeader,
-                            """@${atomicMethod.method}("${atomicMethod.path}")""",
+                            """@${atomicMethod.method}($pathParam)""",
                             generated("#/paths/${atomicMethod.path.replace("/", "~1")}/${atomicMethod.method.name.lowercase()}", codeRef()),
                             """Call<${respRef}> $methodName(""",
                             params,
