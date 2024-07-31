@@ -7,12 +7,14 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+@Slf4j
 public class FancyDeserializer<T> extends StdDeserializer<T>  {
 
     public record SettableField<T, X>(Class<X> type, BiConsumer<T, X> setter) {}
@@ -50,7 +52,7 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
                 consumer.accept(retval, x);
             }
         } catch (JacksonException e) {
-            // ignore
+            log.debug("Failed to parse {} as {}", string, clazz, e);
         }
     }
 
