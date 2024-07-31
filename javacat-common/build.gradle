@@ -1,16 +1,15 @@
 plugins {
-    id("java-library")
-    id("com.github.rahulsom.waena.published")
+    alias(libs.plugins.javaLibrary)
+    alias(libs.plugins.waenaPublished)
 }
 
 dependencies {
-    compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'org.projectlombok:lombok:1.18.28'
-    annotationProcessor 'org.projectlombok:lombok:1.18.28'
-    implementation "org.slf4j:slf4j-api:1.7.30"
+    compileOnly(libs.annotations)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    implementation(libs.slf4j)
 
-    api 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0'
+    api(libs.bundles.jackson)
 }
 
 java {

@@ -8,10 +8,10 @@ buildscript {
 }
 
 plugins {
-    id("com.github.rahulsom.waena.root").version("0.6.3")
-    id("com.github.rahulsom.waena.published").version("0.6.3").apply(false)
-    id("com.netflix.dgs.codegen").version("6.2.2").apply(false)
-    id("de.undercouch.download").version("5.6.0").apply(false)
+    alias(libs.plugins.waenaRoot)
+    alias(libs.plugins.waenaPublished).apply(false)
+    alias(libs.plugins.dgs).apply(false)
+    alias(libs.plugins.download).apply(false)
 }
 
 allprojects {

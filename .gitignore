@@ -6,3 +6,7 @@ build
 
 javacat-graphql-*/
 javacat-rest-*/
+
+*.hprof
+
+.kotlin
