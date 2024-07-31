@@ -2,17 +2,17 @@ import codegen.Main
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-    id("java-library")
-    id("com.github.rahulsom.waena.published")
+    alias(libs.plugins.javaLibrary)
+    alias(libs.plugins.waenaPublished)
 }
 
 dependencies {
-    compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'org.springframework:spring-web:6.1.11'
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    compileOnly(libs.annotations)
+    compileOnly(libs.springWeb)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 
-    api("com.squareup.retrofit2:retrofit:2.11.0")
+    api(libs.retrofit)
     api project(":javacat-common")
 }
 
