@@ -10,7 +10,7 @@ object Types {
     const val URI = "URI"
     const val UUID = "UUID"
     const val LOCAL_DATE = "@JsonFormat(pattern = \"yyyy-MM-dd\", shape = JsonFormat.Shape.STRING) LocalDate"
-    const val OFFSET_DATE_TIME = "@JsonFormat(pattern = \"yyyy-MM-dd'T'HH:mm:ssZ\", shape = JsonFormat.Shape.STRING) OffsetDateTime"
+    const val OFFSET_DATE_TIME = "@JsonFormat(pattern = \"yyyy-MM-dd'T'HH:mm:ssX\", shape = JsonFormat.Shape.STRING) OffsetDateTime"
     const val MAP_STRING_OBJECT = "Map<String, Object>"
     const val EPOCH_TIME = "@JsonFormat(shape = JsonFormat.Shape.NUMBER_INT) OffsetDateTime"
 }
