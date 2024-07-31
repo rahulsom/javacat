@@ -2,7 +2,10 @@
 annotations = "24.1.0"
 commonmark = "0.22.0"
 commons-text = "1.12.0"
+dgs = "6.2.2"
+download = "5.6.0"
 jackson = "2.17.0"
+kotlin = "2.0.0"
 lombok = "1.18.28"
 retrofit = "2.11.0"
 slf4j = "1.7.30"
@@ -28,9 +31,9 @@ commonmark = [ "commonmark", "commonmarkTables" ]
 jackson = [ "jacksonDatabind", "jacksonTime" ]
 
 [plugins]
-dgs = { id = "com.netflix.dgs.codegen", version = "6.2.2" }
-download = { id = "de.undercouch.download", version = "5.6.0" }
+dgs = { id = "com.netflix.dgs.codegen", version.ref = "dgs" }
+download = { id = "de.undercouch.download", version.ref = "download" }
 javaLibrary = { id = "java-library" }
-kotlin = { id = "org.jetbrains.kotlin.jvm", version = "2.0.0" }
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 waenaPublished = { id = "com.github.rahulsom.waena.published", version.ref = "waena" }
 waenaRoot = { id = "com.github.rahulsom.waena.root", version.ref = "waena" }
