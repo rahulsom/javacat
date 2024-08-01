@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * A serializer that can handle <code>anyOf</code>, <code>allOf</code>, and <code>oneOf</code>.
+ *
+ * @param <T> The type
+ */
 public class FancySerializer<T> extends StdSerializer<T> {
     public record GettableField<T, X>(Class<X> type, Function<T, X> getter) {}
 
