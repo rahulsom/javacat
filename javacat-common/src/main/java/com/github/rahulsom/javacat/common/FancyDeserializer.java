@@ -2,7 +2,6 @@ package com.github.rahulsom.javacat.common;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -52,22 +51,11 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
         var consumer = field.setter();
 
         try {
-            var x = parse(string, clazz);
-            if (x != null) {
-                consumer.accept(retval, x);
-            }
+            var x = om.readValue(string, clazz);
+            consumer.accept(retval, x);
         } catch (JacksonException e) {
             log.debug("Failed to parse {} as {}", string, clazz, e);
         }
-    }
-
-    private <X> X parse(String string, Class<X> clazz) throws JsonProcessingException {
-        X x = om.readValue(string, clazz);
-        String newString = om.writeValueAsString(x);
-        if (string.equals(newString)) {
-            return x;
-        }
-        return null;
     }
 
 }
