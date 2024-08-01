@@ -8,6 +8,9 @@ import lombok.experimental.Accessors;
 
 import java.util.List;
 
+/**
+ * A class that can be a String or an Integer.
+ */
 @JsonDeserialize(using = StringOrInteger.CustomDeserializer.class)
 @JsonSerialize(using = StringOrInteger.CustomSerializer.class)
 @Getter

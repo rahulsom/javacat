@@ -15,6 +15,11 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+/**
+ * A deserializer that can handle <code>anyOf</code>, <code>allOf</code>, and <code>oneOf</code>.
+ *
+ * @param <T> The type
+ */
 @Slf4j
 public class FancyDeserializer<T> extends StdDeserializer<T>  {
 
