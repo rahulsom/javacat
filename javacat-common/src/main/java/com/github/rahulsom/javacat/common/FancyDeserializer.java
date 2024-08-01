@@ -7,9 +7,9 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -33,9 +33,8 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
     private final Mode mode;
     private final List<SettableField<T, ?>> fields;
 
-    @SneakyThrows
     @Override
-    public T deserialize(JsonParser p, DeserializationContext ctxt) {
+    public T deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         var map = ctxt.readValue(p, Map.class);
         var string = om.writeValueAsString(map);
         var retval = initializer.get();
