@@ -22,7 +22,7 @@ public class StringObjectOrInteger {
     private Long integerValue;
     private Map<String, Object> objectValue;
 
-    public static class CustomDeserializer extends FancyDeserializer<StringObjectOrInteger> {
+    static class CustomDeserializer extends FancyDeserializer<StringObjectOrInteger> {
         public CustomDeserializer() {
             super(StringObjectOrInteger.class, StringObjectOrInteger::new, Mode.oneOf, List.of(
                     new SettableField<>(String.class, StringObjectOrInteger::setStringValue),
@@ -32,7 +32,7 @@ public class StringObjectOrInteger {
         }
     }
 
-    public static class CustomSerializer extends FancySerializer<StringObjectOrInteger> {
+    static class CustomSerializer extends FancySerializer<StringObjectOrInteger> {
         public CustomSerializer() {
             super(StringObjectOrInteger.class, Mode.oneOf, List.of(
                     new GettableField<>(String.class, StringObjectOrInteger::getStringValue),

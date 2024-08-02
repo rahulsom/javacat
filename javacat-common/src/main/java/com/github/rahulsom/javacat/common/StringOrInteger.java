@@ -20,7 +20,7 @@ public class StringOrInteger {
     private String stringValue;
     private Long integerValue;
 
-    public static class CustomDeserializer extends FancyDeserializer<StringOrInteger> {
+    static class CustomDeserializer extends FancyDeserializer<StringOrInteger> {
         public CustomDeserializer() {
             super(StringOrInteger.class, StringOrInteger::new, Mode.oneOf, List.of(
                     new SettableField<>(String.class, StringOrInteger::setStringValue),
@@ -29,7 +29,7 @@ public class StringOrInteger {
         }
     }
 
-    public static class CustomSerializer extends FancySerializer<StringOrInteger> {
+    static class CustomSerializer extends FancySerializer<StringOrInteger> {
         public CustomSerializer() {
             super(StringOrInteger.class, Mode.oneOf, List.of(
                     new GettableField<>(String.class, StringOrInteger::getStringValue),

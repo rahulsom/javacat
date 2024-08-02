@@ -11,13 +11,13 @@ develocity {
 
 rootProject.name = "javacat"
 
-private void createProject(variant, String ghesVersion) {
-    def projectName = "javacat-$variant-$ghesVersion"
+private fun createProject(variant: String,  ghesVersion:String) {
+    val projectName = "javacat-$variant-$ghesVersion"
     if (!file(projectName).exists()) {
         file(projectName).mkdirs()
     }
     include(projectName)
-    project(":${projectName}").buildFileName = "../${variant}.gradle"
+    project(":${projectName}").buildFileName = "../${variant}.gradle.kts"
 }
 
 //createProject("graphql", "ghec")
@@ -34,4 +34,4 @@ createProject("rest", "ghes-3.12")
 createProject("rest", "ghes-3.11")
 createProject("rest", "ghes-3.10")
 
-include('javacat-common')
+include("javacat-common")
