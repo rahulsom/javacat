@@ -17,10 +17,3 @@ java {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
-
-tasks.withType(Javadoc).configureEach {
-    failOnError false
-    options.addStringOption('Xdoclint:none', '-quiet')
-    options.addStringOption('encoding', 'UTF-8')
-    options.addStringOption('charSet', 'UTF-8')
-}

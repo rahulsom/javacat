@@ -22,10 +22,26 @@ import java.util.function.Supplier;
 @Slf4j
 public class FancyDeserializer<T> extends StdDeserializer<T>  {
 
+    /**
+     * A field that can be set on the field
+     *
+     * @param type The class of the object
+     * @param setter The method that sets the field on the object
+     * @param <T> The type of the object
+     * @param <X> The type of the field
+     */
     public record SettableField<T, X>(Class<X> type, BiConsumer<T, X> setter) {}
 
     private static final ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 
+    /**
+     * Constructs a deserializer
+     *
+     * @param vc The class being deserialized
+     * @param initializer The supplier that creates a new instance of the class
+     * @param mode The mode of deserialization
+     * @param fields The fields that can be set on the class
+     */
     public FancyDeserializer(Class<T> vc, Supplier<T> initializer, Mode mode, List<SettableField<T, ?>> fields) {
         super(vc);
         this.initializer = initializer;
@@ -33,8 +49,19 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
         this.fields = fields;
     }
 
+    /**
+     * The supplier that creates a new instance of the class
+     */
     private final Supplier<T> initializer;
+
+    /**
+     * The mode of deserialization
+     */
     private final Mode mode;
+
+    /**
+     * The fields that can be set on the class
+     */
     private final List<SettableField<T, ?>> fields;
 
     @Override
