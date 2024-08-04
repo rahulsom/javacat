@@ -11,7 +11,7 @@ retrofit = "2.11.0"
 slf4j = "2.0.13"
 springWeb = "6.1.11"
 swaggerParser = "2.1.22"
-waena = "0.6.3"
+waena = "0.6.7"
 
 [libraries]
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
