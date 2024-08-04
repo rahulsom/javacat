@@ -14,7 +14,7 @@ object WebhooksBuilder {
         val webhooksDir = File(outputDir, packageName.replace(".", "/"))
         webhooksDir.mkdirs()
         openAPI.webhooks.forEach { (name, webhook) ->
-            val interfaceName = name.replace(".", "-").split('-').joinToString("") { it.capitalize() } + "Webhook"
+            val interfaceName = name.pascalCase() + "Webhook"
             val content = createWebhookInterface(name, interfaceName, webhook, openAPI)
             CodegenHelper.createFile(packageName, interfaceName, outputDir, content)
         }
