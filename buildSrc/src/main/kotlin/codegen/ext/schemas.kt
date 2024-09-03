@@ -191,8 +191,15 @@ private fun Map.Entry<String, Schema<*>>.buildFancyObject(subSchemas: List<Schem
         """.trimMargin())
 
         (subSchemas?:listOf())
-            .forEachIndexed { index, it ->
-                val keyValuePair = mapOf(key + index to it).entries.first()
+            .mapIndexed { index, it ->
+                var newKey = key + index
+                if (it.`$ref` != null) {
+                    newKey = it.`$ref`.replace("#/components/schemas/", "")
+                }
+                newKey to it
+            }
+            .forEachIndexed { index, (newKey, it) ->
+                val keyValuePair = mapOf(newKey to it).entries.first()
                 val rad = keyValuePair.referenceAndDefinition()
                 rad?.let {
                     rad.second?.let { x -> theType.subType(x) }
@@ -202,8 +209,9 @@ private fun Map.Entry<String, Schema<*>>.buildFancyObject(subSchemas: List<Schem
                         serializer.append(",\n")
                     }
                     val fType = rad.first.replace(Regex("<.*>"), "")
-                    deserializer.append("            new FancyDeserializer.SettableField<>(${fType}.class, %TYPE%::set${keyValuePair.key.pascalCase()})")
-                    serializer.append("            new FancySerializer.GettableField<>(${fType}.class, %TYPE%::get${keyValuePair.key.pascalCase()})")
+                    val fieldName = rad.second?.name ?: keyValuePair.key
+                    deserializer.append("            new FancyDeserializer.SettableField<>(${fType}.class, %TYPE%::set${fieldName.pascalCase()})")
+                    serializer.append("            new FancySerializer.GettableField<>(${fType}.class, %TYPE%::get${fieldName.pascalCase()})")
                 }
             }
         deserializer.append("""
