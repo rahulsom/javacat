@@ -24,11 +24,11 @@ object CodegenHelper {
         return frame.map { "${it.fileName}:${it.lineNumber}" }.orElse("FIXME: UNKNOWN")
     }
 
-    fun printObject(theObejct: Any): String {
+    fun printObject(theObject: Any): String {
         val mapper = ObjectMapper()
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
         mapper.enable(SerializationFeature.INDENT_OUTPUT)
-        return mapper.writeValueAsString(theObejct).split("\n")
+        return mapper.writeValueAsString(theObject).split("\n")
             .filter {
                 !it.contains("exampleSetFlag") && !it.contains("valueSetFlag")
             }
