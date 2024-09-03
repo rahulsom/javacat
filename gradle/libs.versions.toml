@@ -18,7 +18,7 @@ annotations = { group = "org.jetbrains", name = "annotations", version.ref = "an
 commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }
 commonmarkTables = { group = "org.commonmark", name = "commonmark-ext-gfm-tables", version.ref = "commonmark" }
 commonsText = { group = "org.apache.commons", name = "commons-text", version.ref = "commons-text" }
-jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jacksonCore = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jacksonTime = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
@@ -28,7 +28,7 @@ swaggerParser = { group = "io.swagger.parser.v3", name = "swagger-parser", versi
 
 [bundles]
 commonmark = [ "commonmark", "commonmarkTables" ]
-jackson = [ "jacksonDatabind", "jacksonTime" ]
+jackson = ["jacksonCore", "jacksonTime" ]
 
 [plugins]
 dgs = { id = "com.netflix.dgs.codegen", version.ref = "dgs" }

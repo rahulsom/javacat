@@ -9,7 +9,7 @@ plugins {
 }
 
 dependencies {
-    api(libs.jacksonDatabind)
+    api(libs.jacksonCore)
 }
 
 fun getUrl(projectVariant: String): String {
