@@ -84,9 +84,7 @@ fun Map.Entry<String, Schema<*>>.referenceAndDefinition(isArray: Boolean = false
         types == null && value.properties != null && value.properties.isEmpty() && value.additionalProperties == false -> Pair("Void", null)
 
         types == null && value.properties != null && value.properties.isNotEmpty() -> buildType { buildSimpleObject(isArray) }
-        types == null -> when {
-            else -> Pair("/*${todo()} Unhandled ${printObject(this)}*/ Map<String, Object>", null)
-        }
+        types == null -> Pair(Types.MAP_STRING_OBJECT, null)
 
         types.isEmpty() -> null
 
@@ -130,7 +128,7 @@ fun Map.Entry<String, Schema<*>>.referenceAndDefinition(isArray: Boolean = false
                 }
 
                 value.properties != null && value.properties.isNotEmpty() -> buildType { buildSimpleObject(isArray) }
-                else -> Pair("Map<String, Object>", null)
+                else -> Pair(Types.MAP_STRING_OBJECT, null)
             }
 
             else -> throw RuntimeException("Unknown type for ${key}, stack: ${Holder.instance.get().getSchemaStackRef()}")
@@ -176,6 +174,7 @@ private fun Map.Entry<String, Schema<*>>.buildFancyObject(subSchemas: List<Schem
 
         val deserializer = StringBuilder()
         deserializer.append("""
+            |
             |public static class %TYPE%Deserializer extends FancyDeserializer<%TYPE%> {
             |    public %TYPE%Deserializer() {
             |        super(%TYPE%.class, %TYPE%::new, Mode.$type, List.of(
@@ -184,6 +183,7 @@ private fun Map.Entry<String, Schema<*>>.buildFancyObject(subSchemas: List<Schem
 
         val serializer = StringBuilder()
         serializer.append("""
+            |
             |public static class %TYPE%Serializer extends FancySerializer<%TYPE%> {
             |    public %TYPE%Serializer() {
             |        super(%TYPE%.class, Mode.$type, List.of(
@@ -276,24 +276,6 @@ private fun Map.Entry<String, Schema<*>>.buildEnum(): Type {
                 if (v == null) "NULL(null)" else "${v.toString().unkeywordize().trainCase()}(\"${v}\")"
             })
             .rawBody("@JsonValue private final String value;")
-//            .rawBody(
-//                """
-//            |// %TYPE%(String value) { this.value = value; }
-//            |
-//            |// @JsonValue
-//            |// public String getValue() { return value; }
-//            |
-//            |@JsonCreator
-//            |public static %TYPE% fromValue(String value) {
-//            |    for (%TYPE% e : %TYPE%.values()) {
-//            |        if (e.value.equals(value)) {
-//            |            return e;
-//            |        }
-//            |    }
-//            |    throw new IllegalArgumentException("Unexpected value '" + value + "'");
-//            |}
-//        """.trimMargin()/*.prependIndent("    ")*/
-//            )
     }
 }
 
