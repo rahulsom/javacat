@@ -62,6 +62,7 @@ fun Map.Entry<String, Schema<*>>.referenceAndDefinition(isArray: Boolean = false
     val oneOf = value.oneOf?.filterNotNull()
     val allOf = value.allOf?.filterNotNull()
     return when {
+        key == "empty-object" -> Pair("EmptyObject", null)
         value.`$ref` != null -> {
             val schemaName = value.`$ref`.replace("#/components/schemas/", "")
             val entries = Holder.instance.get().openAPI!!.components.schemas.filter { (k, _) -> k == schemaName }.entries
