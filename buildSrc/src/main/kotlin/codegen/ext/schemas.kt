@@ -171,6 +171,7 @@ private fun Map.Entry<String, Schema<*>>.buildFancyObject(subSchemas: List<Schem
             .annotation("@Setter")
             .annotation("""@JsonDeserialize(using = %TYPE%.%TYPE%Deserializer.class)""")
             .annotation("""@JsonSerialize(using = %TYPE%.%TYPE%Serializer.class)""")
+            .rawBody("/*\n${printObject(this).prependIndent(" * ")}\n */")
 
         val deserializer = StringBuilder()
         deserializer.append("""
