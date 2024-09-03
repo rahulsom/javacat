@@ -32,7 +32,7 @@ object CodegenHelper {
             .filter {
                 !it.contains("exampleSetFlag") && !it.contains("valueSetFlag")
             }
-            .joinToString(" ").replace(Regex("\\s+"), " ") +"\n"
+            .joinToString("\n")
     }
 
     private val parser: Parser = Parser.builder()
@@ -50,7 +50,7 @@ object CodegenHelper {
             return ""
         }
         val document = parser.parse(md)
-        val lines = renderer.render(document)
+        return renderer.render(document)
             .replace("*/", "*&#47;")
             .replace(Regex("</p>\\s*<p>"), "\n<br/>\n")
             .replace("<p>", "")
@@ -62,11 +62,12 @@ object CodegenHelper {
             .replace("</a>, ", "</a>,\n")
             .replace("</a>&quot; ", "</a>&quot;\n")
             .split("\n")
-        return lines
             .dropLastWhile { it.isBlank() }
             .joinToString("\n") {
-                if (it.contains("<a href")) it
-                else WordUtils.wrap(it, 120)
+                when {
+                    it.contains("<a href") -> it
+                    else -> WordUtils.wrap(it, 120)
+                }
             }
     }
 
