@@ -1,4 +1,4 @@
-package com.github.rahulsom.javacat.common;
+package com.github.pulpogato.common;
 
 /**
  * The type of the fancy type.

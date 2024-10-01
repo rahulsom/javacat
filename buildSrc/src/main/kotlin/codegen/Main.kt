@@ -11,11 +11,23 @@ class Main {
         val result = OpenAPIParser().readContents(schema.readText(), listOf(), parseOptions)
         val openAPI = result.openAPI
         Holder.instance.get().openAPI = openAPI
-        PathsBuilder.buildApis(openAPI, outputDir, "${packageName}.api")
-        WebhooksBuilder.buildWebhooks(openAPI, outputDir, "${packageName}.webhooks")
+        PathsBuilder.buildApis(openAPI, outputDir,
+            packageName,
+            "${packageName}.rest",
+            "${packageName}.rest.api"
+        )
+        WebhooksBuilder.buildWebhooks(openAPI, outputDir,
+            "${packageName}",
+            "${packageName}.rest",
+            "${packageName}.rest.webhooks"
+        )
 
         Holder.instance.get().withSchemaStack("#", "components", "schemas") {
-            SchemasBuilder.buildSchemas(openAPI, outputDir, "${packageName}.schemas")
+            SchemasBuilder.buildSchemas(openAPI, outputDir,
+                "${packageName}",
+                "${packageName}.rest",
+                "${packageName}.rest.schemas"
+            )
         }
     }
 

@@ -10,21 +10,21 @@ import java.io.File
 import java.io.StringWriter
 
 object WebhooksBuilder {
-    fun buildWebhooks(openAPI: OpenAPI, outputDir: File, packageName: String) {
+    fun buildWebhooks(openAPI: OpenAPI, outputDir: File, rootPackage: String, restPackage: String, packageName: String) {
         val webhooksDir = File(outputDir, packageName.replace(".", "/"))
         webhooksDir.mkdirs()
         openAPI.webhooks.forEach { (name, webhook) ->
             val interfaceName = name.pascalCase() + "Webhook"
-            val content = createWebhookInterface(name, interfaceName, webhook, openAPI)
-            CodegenHelper.createFile(packageName, interfaceName, outputDir, content)
+            val content = createWebhookInterface(name, interfaceName, webhook, openAPI, restPackage)
+            CodegenHelper.createFile(packageName, interfaceName, outputDir, content, rootPackage)
         }
     }
 
-    private fun createWebhookInterface(name: String, interfaceName: String, webhook: PathItem, openAPI: OpenAPI): String {
+    private fun createWebhookInterface(name: String, interfaceName: String, webhook: PathItem, openAPI: OpenAPI, restPackage: String): String {
         return StringWriter().let { writer ->
             writer.write(
                 """
-                import com.github.rahulsom.javacat.rest.schemas.*;
+                import ${restPackage}.schemas.*;
                 import org.springframework.http.ResponseEntity;
                 import org.springframework.web.bind.annotation.PostMapping;
                 import org.springframework.web.bind.annotation.RequestBody;

@@ -15,7 +15,7 @@ import java.io.File
 object PathsBuilder {
     class AtomicMethod(val path: String, val method: HttpMethod, val operationId: String, val operation: Operation)
 
-    fun buildApis(openAPI: OpenAPI, outputDir: File, packageName: String) {
+    fun buildApis(openAPI: OpenAPI, outputDir: File, rootPackage: String, restPackage: String, packageName: String) {
         val apiDir = File(outputDir, packageName.replace(".", "/"))
         apiDir.mkdirs()
         openAPI.paths
@@ -44,9 +44,9 @@ object PathsBuilder {
                     .import("java.util.List")
                     .import("java.util.Map")
                     .import("java.time.OffsetDateTime")
-                    .import("com.github.rahulsom.javacat.rest.schemas.*")
-                    .import("com.github.rahulsom.javacat.rest.schemas.Thread")
-                    .import("com.github.rahulsom.javacat.rest.schemas.Package")
+                    .import("${restPackage}.schemas.*")
+                    .import("${restPackage}.schemas.Thread")
+                    .import("${restPackage}.schemas.Package")
                     .annotation(generated("#/tags/$docTag", codeRef()))
 
                 atomicMethods.forEach { atomicMethod ->
@@ -57,7 +57,7 @@ object PathsBuilder {
 
                 val code = typeDef.toCode()
                 val importString = typeDef.importString()
-                CodegenHelper.createFile(packageName, interfaceName, outputDir, importString + "\n\n" + code)
+                CodegenHelper.createFile(packageName, interfaceName, outputDir, importString + "\n\n" + code, rootPackage)
             }
 
     }

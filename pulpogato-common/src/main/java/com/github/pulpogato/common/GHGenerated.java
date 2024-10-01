@@ -1,4 +1,4 @@
-package com.github.rahulsom.javacat.common;
+package com.github.pulpogato.common;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * Indicates that the class was generated.
  */
-@Retention(RetentionPolicy.RUNTIME)
+@SuppressWarnings("unused")
+@Retention(RetentionPolicy.CLASS)
 public @interface GHGenerated {
     /**
      * The location of the type in the schema
