@@ -37,7 +37,7 @@ tasks.named<GenerateJavaTask>("generateJava") {
     dependsOn(downloadSchema)
 
     schemaPaths = mutableListOf("${project.layout.buildDirectory.get()}/resources/main/schema.graphqls")
-    packageName = "com.github.pulpogato.graphql"
+    packageName = "io.github.pulpogato.graphql"
     generateClientv2 = true
     includeQueries = mutableListOf("")
     includeMutations = mutableListOf("")
