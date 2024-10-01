@@ -32,3 +32,7 @@ subprojects {
         mavenCentral()
     }
 }
+
+waena {
+    useCentralPortal.set(true)
+}
