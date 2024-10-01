@@ -1,4 +1,4 @@
-package com.github.rahulsom.javacat.common;
+package com.github.pulpogato.common;
 
 /**
  * <strong>Empty Object</strong>

@@ -15,7 +15,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.github.rahulsom"
+    group = "com.github.pulpogato"
 }
 
 extensions.findByType(ContactsExtension).with {
@@ -37,7 +37,7 @@ subprojects {
         'rahulsom@noreply.github.com' {
             moniker("Rahul Somasunderam")
             roles("owner")
-            github("https://github.com/rahulsom/javacat")
+            github("https://github.com/rahulsom")
         }
     }
 

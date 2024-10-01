@@ -9,10 +9,10 @@ develocity {
     }
 }
 
-rootProject.name = "javacat"
+rootProject.name = "pulpogato"
 
 private fun createProject(variant: String,  ghesVersion:String) {
-    val projectName = "javacat-$variant-$ghesVersion"
+    val projectName = "${rootProject.name}-$variant-$ghesVersion"
     if (!file(projectName).exists()) {
         file(projectName).mkdirs()
     }
@@ -34,4 +34,4 @@ createProject("rest", "ghes-3.12")
 createProject("rest", "ghes-3.11")
 createProject("rest", "ghes-3.10")
 
-include("javacat-common")
+include("${rootProject.name}-common")

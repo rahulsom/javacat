@@ -20,7 +20,7 @@ fun getUrl(projectVariant: String): String {
     }
 }
 
-val projectVariant = project.name.replace("javacat-graphql-", "")
+val projectVariant = project.name.replace("${rootProject.name}-graphql-", "")
 
 val downloadSchema = tasks.register<Download>("downloadSchema") {
     src(getUrl(projectVariant))
@@ -37,7 +37,7 @@ tasks.named<GenerateJavaTask>("generateJava") {
     dependsOn(downloadSchema)
 
     schemaPaths = mutableListOf("${project.layout.buildDirectory.get()}/resources/main/schema.graphqls")
-    packageName = "com.github.rahulsom.javacat.graphql"
+    packageName = "com.github.pulpogato.graphql"
     generateClientv2 = true
     includeQueries = mutableListOf("")
     includeMutations = mutableListOf("")

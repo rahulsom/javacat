@@ -1,4 +1,4 @@
-package com.github.rahulsom.javacat.common;
+package com.github.pulpogato.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

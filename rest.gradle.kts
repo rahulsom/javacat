@@ -13,7 +13,7 @@ dependencies {
     annotationProcessor(libs.lombok)
 
     api(libs.retrofit)
-    api(project(":javacat-common"))
+    api(project(":${rootProject.name}-common"))
 }
 
 fun getUrl(projectVariant: String): String {
@@ -21,7 +21,7 @@ fun getUrl(projectVariant: String): String {
     return "https://github.com/github/rest-api-description/raw/main/descriptions-next/$path/$path.json"
 }
 
-val projectVariant = project.name.replace("javacat-rest-", "")
+val projectVariant = project.name.replace("${rootProject.name}-rest-", "")
 
 val downloadSchema = tasks.register<Download>("downloadSchema") {
     src(getUrl(projectVariant))
@@ -46,7 +46,7 @@ val generateJava = tasks.register("generateJava") {
         Main().process(
                 file("${project.layout.buildDirectory.get()}/generated/resources/main/schema.json"),
                 file("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen"),
-                "com.github.rahulsom.javacat.rest"
+                "com.github.pulpogato"
         )
     }
     outputs.dir(file("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen"))
