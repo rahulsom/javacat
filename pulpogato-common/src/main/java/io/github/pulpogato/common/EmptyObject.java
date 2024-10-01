@@ -1,4 +1,4 @@
-package com.github.pulpogato.common;
+package io.github.pulpogato.common;
 
 /**
  * <strong>Empty Object</strong>

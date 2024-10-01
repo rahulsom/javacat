@@ -1,4 +1,4 @@
-package com.github.pulpogato.common;
+package io.github.pulpogato.common;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;

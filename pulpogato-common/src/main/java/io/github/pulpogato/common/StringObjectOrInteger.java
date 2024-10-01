@@ -1,4 +1,4 @@
-package com.github.pulpogato.common;
+package io.github.pulpogato.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

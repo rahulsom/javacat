@@ -15,7 +15,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.github.pulpogato"
+    group = "io.github.pulpogato"
 }
 
 extensions.findByType(ContactsExtension).with {

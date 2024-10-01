@@ -1,4 +1,4 @@
-package com.github.pulpogato.common;
+package io.github.pulpogato.common;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
