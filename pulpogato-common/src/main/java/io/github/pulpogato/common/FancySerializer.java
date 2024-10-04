@@ -8,9 +8,9 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -22,20 +22,21 @@ public class FancySerializer<T> extends StdSerializer<T> {
     /**
      * A field that can be read from the object
      *
-     * @param type The class of the object
+     * @param type   The class of the object
      * @param getter The method that gets the field from the object
-     * @param <T> The type of the object
-     * @param <X> The type of the field
+     * @param <T>    The type of the object
+     * @param <X>    The type of the field
      */
-    public record GettableField<T, X>(Class<X> type, Function<T, X> getter) {}
+    public record GettableField<T, X>(Class<X> type, Function<T, X> getter) {
+    }
 
     private static final ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 
     /**
      * Constructs a serializer
      *
-     * @param vc The class being serialized
-     * @param mode The mode of serialization
+     * @param vc     The class being serialized
+     * @param mode   The mode of serialization
      * @param fields The fields that can be read from the class
      */
     public FancySerializer(Class<T> vc, Mode mode, List<GettableField<T, ?>> fields) {
@@ -56,13 +57,38 @@ public class FancySerializer<T> extends StdSerializer<T> {
 
     @Override
     public void serialize(T value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        var superMap = fields.stream()
-                .map(field -> {
+        var serialized = fields.stream()
+                .map(field -> field.getter().apply(value))
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (mode == Mode.oneOf) {
+            Object o = serialized.get(0);
+            if (o instanceof String s) {
+                gen.writeString(s);
+            } else if (o instanceof Integer i) {
+                gen.writeNumber(i);
+            } else if (o instanceof Long i) {
+                gen.writeNumber(i);
+            } else if (o instanceof Double d) {
+                gen.writeNumber(d);
+            } else if (o instanceof Float d) {
+                gen.writeNumber(d);
+            } else if (o instanceof BigDecimal d) {
+                gen.writeNumber(d);
+            } else if (o instanceof BigInteger d) {
+                gen.writeNumber(d);
+            } else if (o instanceof Boolean b) {
+                gen.writeBoolean(b);
+            } else {
+                gen.writeObject(o);
+            }
+            return;
+        }
+
+        var superMap = serialized.stream()
+                .map(x -> {
                     try {
-                        var x = field.getter().apply(value);
-                        if (x == null) {
-                            return null;
-                        }
                         String string = om.writeValueAsString(x);
                         return om.readValue(string, LinkedHashMap.class);
                     } catch (JsonProcessingException ignored) {
