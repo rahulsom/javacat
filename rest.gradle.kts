@@ -14,6 +14,9 @@ dependencies {
 
     api(libs.retrofit)
     api(project(":${rootProject.name}-common"))
+
+    testImplementation(libs.junit)
+    testImplementation(libs.assertj)
 }
 
 fun getUrl(projectVariant: String): String {
@@ -85,4 +88,8 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

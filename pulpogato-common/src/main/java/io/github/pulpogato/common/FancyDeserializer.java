@@ -66,11 +66,29 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
 
     @Override
     public T deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        var map = ctxt.readValue(p, Map.class);
-        var string = om.writeValueAsString(map);
-        var retval = initializer.get();
-        fields.forEach(pair -> setField(pair, string, retval));
-        return retval;
+        var returnValue = initializer.get();
+
+        try {
+            var map = ctxt.readValue(p, Map.class);
+            var mapAsString = om.writeValueAsString(map);
+            fields.forEach(pair -> setField(pair, mapAsString, returnValue));
+        } catch (JacksonException e) {
+            try {
+                var map = ctxt.readValue(p, String.class);
+                var mapAsString = om.writeValueAsString(map);
+                fields.forEach(pair -> setField(pair, mapAsString, returnValue));
+            } catch (JacksonException e1) {
+                try {
+                    var map = ctxt.readValue(p, Number.class);
+                    var mapAsString = om.writeValueAsString(map);
+                    fields.forEach(pair -> setField(pair, mapAsString, returnValue));
+                } catch (JacksonException e2) {
+                    log.debug("Failed to parse", e2);
+                    return null;
+                }
+            }
+        }
+        return returnValue;
     }
 
     private <X> void setField(SettableField<T, X> field, String string, T retval) {
