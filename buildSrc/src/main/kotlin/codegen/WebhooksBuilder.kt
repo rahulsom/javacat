@@ -72,7 +72,9 @@ object WebhooksBuilder {
                     val type = schema.className()
                     writer.write("    ResponseEntity<T> $methodName(\n")
                     operation.parameters.filter { it.`in` == "header" }.forEach {
-                        writer.write("        @RequestHeader(name = \"${it.name}\") String ${it.name.camelCase()},\n")
+                        val required = !it.name.startsWith("X-Hub-Signature")
+                        writer.write("""        @RequestHeader(required = ${required},name = "${it.name}") String ${it.name.camelCase()},""")
+                        writer.write("\n")
                     }
                     writer.write("        @RequestBody ${type} requestBody\n")
                     writer.write("    );\n")
