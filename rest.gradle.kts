@@ -15,8 +15,7 @@ dependencies {
     api(libs.retrofit)
     api(project(":${rootProject.name}-common"))
 
-    testImplementation(libs.junit)
-    testImplementation(libs.assertj)
+    testImplementation(project(":${rootProject.name}-rest-tests"))
 }
 
 fun getUrl(projectVariant: String): String {
