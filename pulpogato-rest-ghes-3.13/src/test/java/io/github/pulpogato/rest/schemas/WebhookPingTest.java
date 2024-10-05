@@ -1,9 +1,7 @@
 package io.github.pulpogato.rest.schemas;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.github.pulpogato.test.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -165,9 +163,9 @@ class WebhookPingTest {
 
     @Test
     void shouldParse() throws JsonProcessingException {
-        var om = new ObjectMapper().registerModule(new JavaTimeModule());
-        WebhookPing webhookPing = om.readValue(input, WebhookPing.class);
-        System.out.println(om.enable(SerializationFeature.INDENT_OUTPUT).writeValueAsString(webhookPing));
+        WebhookPing webhookPing = TestUtils.parseAndCompare(WebhookPing.class, input);
+
         assertThat(webhookPing.getHook().getConfig().getInsecureSsl().getWebhookConfigInsecureSsl0()).isEqualTo("0");
     }
+
 }

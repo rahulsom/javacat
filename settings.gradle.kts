@@ -35,3 +35,4 @@ createProject("rest", "ghes-3.11")
 createProject("rest", "ghes-3.10")
 
 include("${rootProject.name}-common")
+include("${rootProject.name}-rest-tests")
