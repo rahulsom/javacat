@@ -14,7 +14,7 @@ object SchemasBuilder {
                 val code = definition.toCode()
                 val importString = definition.importString()
                 CodegenHelper.createFile(packageName, entry.className(), outputDir, importString + "\n\n" + code, rootPackage)
-            } else if (reference in listOf("String", "URI", "Long", "Boolean", "List<Long>", Types.LOCAL_DATE, Types.OFFSET_DATE_TIME)) {
+            } else if (reference in listOf("String", "URI", "Long", "Boolean", "List<Long>", Types.LOCAL_DATE, Types.OFFSET_DATE_TIME, "EmptyObject")) {
                 // ignore
             } else {
                 println(listOf(entry.className(), listOf(reference, definition), entry.fieldDefinition())) // TODO
