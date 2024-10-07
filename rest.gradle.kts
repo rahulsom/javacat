@@ -1,9 +1,11 @@
 import codegen.Main
+import com.adarshr.gradle.testlogger.theme.ThemeType
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
     alias(libs.plugins.javaLibrary)
     alias(libs.plugins.waenaPublished)
+    id ("com.adarshr.test-logger") version "4.0.0"
 }
 
 dependencies {
@@ -91,4 +93,13 @@ java {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+testlogger {
+    theme = ThemeType.MOCHA
+    slowThreshold = 5000
+
+    showPassed = false
+    showSkipped = true
+    showFailed = true
 }
