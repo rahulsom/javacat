@@ -63,25 +63,17 @@ public class FancySerializer<T> extends StdSerializer<T> {
                 .toList();
 
         if (mode == Mode.oneOf) {
-            Object o = serialized.get(0);
-            if (o instanceof String s) {
-                gen.writeString(s);
-            } else if (o instanceof Integer i) {
-                gen.writeNumber(i);
-            } else if (o instanceof Long i) {
-                gen.writeNumber(i);
-            } else if (o instanceof Double d) {
-                gen.writeNumber(d);
-            } else if (o instanceof Float d) {
-                gen.writeNumber(d);
-            } else if (o instanceof BigDecimal d) {
-                gen.writeNumber(d);
-            } else if (o instanceof BigInteger d) {
-                gen.writeNumber(d);
-            } else if (o instanceof Boolean b) {
-                gen.writeBoolean(b);
-            } else {
-                gen.writeObject(o);
+            Object o = serialized.getFirst();
+            switch (o) {
+                case Integer i -> gen.writeNumber(i);
+                case Long l -> gen.writeNumber(l);
+                case Double d -> gen.writeNumber(d);
+                case Float f -> gen.writeNumber(f);
+                case BigDecimal bd -> gen.writeNumber(bd);
+                case BigInteger bi -> gen.writeNumber(bi);
+                case Boolean b -> gen.writeBoolean(b);
+                case String s -> gen.writeString(s);
+                case null, default -> gen.writeObject(o);
             }
             return;
         }
