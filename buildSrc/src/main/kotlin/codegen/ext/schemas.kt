@@ -111,7 +111,11 @@ fun Map.Entry<String, Schema<*>>.referenceAndDefinition(isArray: Boolean = false
             }
 
             "boolean" -> Pair(Types.BOOLEAN, null)
-            "number" -> Pair(Types.DOUBLE, null)
+            "number" -> when (value.format) {
+                "double" -> Pair(Types.DOUBLE, null)
+                "float" -> Pair(Types.FLOAT, null)
+                else -> Pair(Types.BIG_DECIMAL, null)
+            }
             "array" -> mapOf(key to value.items).entries.first().referenceAndDefinition(true)?.let {
                 Pair("List<${it.first}>", it.second)
             }
@@ -159,6 +163,7 @@ private fun Map.Entry<String, Schema<*>>.buildFancyObject(subSchemas: List<Schem
             .import("java.util.Map")
             .import("java.util.UUID")
             .import("java.net.URI")
+            .import("java.math.BigDecimal")
             .import("com.fasterxml.jackson.annotation.JsonFormat")
             .import("com.fasterxml.jackson.annotation.JsonProperty")
             .import("com.fasterxml.jackson.databind.annotation.JsonDeserialize")
@@ -242,6 +247,7 @@ private fun Map.Entry<String, Schema<*>>.buildSimpleObject(isArray: Boolean): Ty
             .import("java.util.Map")
             .import("java.util.UUID")
             .import("java.net.URI")
+            .import("java.math.BigDecimal")
             .import("com.fasterxml.jackson.annotation.JsonFormat")
             .import("com.fasterxml.jackson.annotation.JsonProperty")
             .import("java.time.OffsetDateTime")
