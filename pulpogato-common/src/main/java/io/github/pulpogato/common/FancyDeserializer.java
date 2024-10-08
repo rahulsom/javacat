@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static com.fasterxml.jackson.databind.MapperFeature.ALLOW_COERCION_OF_SCALARS;
+
 /**
  * A deserializer that can handle <code>anyOf</code>, <code>allOf</code>, and <code>oneOf</code>.
  *
@@ -71,17 +73,17 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
         try {
             var map = ctxt.readValue(p, Map.class);
             var mapAsString = om.writeValueAsString(map);
-            fields.forEach(pair -> setField(pair, mapAsString, returnValue));
+            setAllFields(mapAsString, returnValue);
         } catch (JacksonException e) {
             try {
                 var map = ctxt.readValue(p, String.class);
                 var mapAsString = om.writeValueAsString(map);
-                fields.forEach(pair -> setField(pair, mapAsString, returnValue));
+                setAllFields(mapAsString, returnValue);
             } catch (JacksonException e1) {
                 try {
                     var map = ctxt.readValue(p, Number.class);
                     var mapAsString = om.writeValueAsString(map);
-                    fields.forEach(pair -> setField(pair, mapAsString, returnValue));
+                    setAllFields(mapAsString, returnValue);
                 } catch (JacksonException e2) {
                     log.debug("Failed to parse", e2);
                     return null;
@@ -91,16 +93,30 @@ public class FancyDeserializer<T> extends StdDeserializer<T>  {
         return returnValue;
     }
 
-    private <X> void setField(SettableField<T, X> field, String string, T retval) {
+    private void setAllFields(String mapAsString, T returnValue) {
+        for (SettableField<T, ?> pair : fields) {
+            boolean successful = setField(pair, mapAsString, returnValue);
+            if (mode == Mode.oneOf) {
+                if (successful) {
+                    return;
+                }
+            }
+        }
+    }
+
+    private <X> boolean setField(SettableField<T, X> field, String string, T retval) {
         var clazz = field.type();
         var consumer = field.setter();
 
+        X x;
         try {
-            var x = om.readValue(string, clazz);
-            consumer.accept(retval, x);
+            x = om.readValue(string, clazz);
         } catch (JacksonException e) {
             log.debug("Failed to parse {} as {}", string, clazz, e);
+            return false;
         }
+        consumer.accept(retval, x);
+        return true;
     }
 
 }
