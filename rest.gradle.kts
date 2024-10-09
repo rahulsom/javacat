@@ -50,10 +50,12 @@ val generateJava = tasks.register("generateJava") {
         Main().process(
                 file("${project.layout.buildDirectory.get()}/generated/resources/main/schema.json"),
                 file("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen"),
-                "io.github.pulpogato"
+                "io.github.pulpogato",
+                file("${project.layout.buildDirectory.get()}/generated/sources/test")
         )
     }
     outputs.dir(file("${project.layout.buildDirectory.get()}/generated/sources/rest-codegen"))
+    outputs.dir(file("${project.layout.buildDirectory.get()}/generated/sources/test"))
 }
 
 tasks.compileJava {
