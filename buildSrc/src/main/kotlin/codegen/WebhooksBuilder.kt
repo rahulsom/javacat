@@ -10,18 +10,27 @@ import java.io.File
 import java.io.StringWriter
 
 object WebhooksBuilder {
-    fun buildWebhooks(openAPI: OpenAPI, outputDir: File, rootPackage: String, restPackage: String, packageName: String) {
-        val webhooksDir = File(outputDir, packageName.replace(".", "/"))
+    fun buildWebhooks(openAPI: OpenAPI, mainDir: File, rootPackage: String, restPackage: String, packageName: String, testDir: File) {
+        val webhooksDir = File(mainDir, packageName.replace(".", "/"))
         webhooksDir.mkdirs()
         openAPI.webhooks.forEach { (name, webhook) ->
             val interfaceName = name.pascalCase() + "Webhook"
-            val content = createWebhookInterface(name, interfaceName, webhook, openAPI, restPackage)
-            CodegenHelper.createFile(packageName, interfaceName, outputDir, content, rootPackage)
+            val content = createWebhookInterface(name, interfaceName, webhook, openAPI, restPackage, packageName, testDir)
+            CodegenHelper.createFile(packageName, interfaceName, mainDir, content, rootPackage)
         }
     }
 
-    private fun createWebhookInterface(name: String, interfaceName: String, webhook: PathItem, openAPI: OpenAPI, restPackage: String): String {
+    private fun createWebhookInterface(
+        name: String,
+        interfaceName: String,
+        webhook: PathItem,
+        openAPI: OpenAPI,
+        restPackage: String,
+        packageName: String,
+        testDir: File
+    ): String {
         return StringWriter().let { writer ->
+            val testBuilder = TestBuilder()
             writer.write(
                 """
                 import ${restPackage}.schemas.*;
@@ -68,6 +77,7 @@ object WebhooksBuilder {
 
                 if (requestBody.content.firstEntry().value.schema.`$ref` != null) {
                     val ref = requestBody.content.firstEntry().value.schema.`$ref`.replace("#/components/schemas/", "")
+                    val examples = requestBody.content.firstEntry().value.examples
                     val schema = openAPI.components.schemas.entries.first { it.key == ref }
                     val type = schema.className()
                     writer.write("    ResponseEntity<T> $methodName(\n")
@@ -82,12 +92,22 @@ object WebhooksBuilder {
                     }
                     writer.write("        @RequestBody ${type} requestBody\n")
                     writer.write("    );\n")
+
+                    examples?.forEach { (key, value) ->
+                        val ref = value.`$ref`
+                        val example = openAPI.components.examples.entries.firstOrNull { it.key == ref.replace("#/components/examples/", "") }
+                        if (example != null) {
+                            testBuilder.addTest(key, example.value.value.toString(), type)
+                        }
+                    }
+
                 } else {
                     throw RuntimeException("Unknown type for ${requestBody.content.firstEntry().value.schema}")
                 }
             }
 
             writer.write("}\n")
+            testBuilder.buildTestClass(testDir, packageName, interfaceName, null)
             writer.toString()
         }
     }

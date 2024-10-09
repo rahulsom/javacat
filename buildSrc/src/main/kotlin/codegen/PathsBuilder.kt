@@ -15,7 +15,7 @@ import java.io.File
 object PathsBuilder {
     class AtomicMethod(val path: String, val method: HttpMethod, val operationId: String, val operation: Operation)
 
-    fun buildApis(openAPI: OpenAPI, outputDir: File, rootPackage: String, restPackage: String, packageName: String) {
+    fun buildApis(openAPI: OpenAPI, outputDir: File, rootPackage: String, restPackage: String, packageName: String, testDir: File) {
         val apiDir = File(outputDir, packageName.replace(".", "/"))
         apiDir.mkdirs()
         openAPI.paths
@@ -26,6 +26,7 @@ object PathsBuilder {
             }
             .groupBy { it.operationId.split('/')[0] }
             .forEach { (groupName, atomicMethods) ->
+                val testBuilder = TestBuilder()
                 val docTag = atomicMethods[0].operation.tags[0]
                 val apiDescription = openAPI.tags.find { it.name == docTag }?.description
                 val interfaceName = groupName.pascalCase() + "Api"
@@ -51,18 +52,19 @@ object PathsBuilder {
 
                 atomicMethods.forEach { atomicMethod ->
                     Holder.instance.get().withSchemaStack("#", "paths", atomicMethod.path, atomicMethod.method.name.lowercase()) {
-                        buildMethod(atomicMethod, openAPI, typeDef)
+                        buildMethod(atomicMethod, openAPI, typeDef, testBuilder)
                     }
                 }
 
                 val code = typeDef.toCode()
                 val importString = typeDef.importString()
+                testBuilder.buildTestClass(testDir, packageName, interfaceName, "${packageName}.$interfaceName.*")
                 CodegenHelper.createFile(packageName, interfaceName, outputDir, importString + "\n\n" + code, rootPackage)
             }
 
     }
 
-    private fun buildMethod(atomicMethod: AtomicMethod, openAPI: OpenAPI, typeDef: Type) {
+    private fun buildMethod(atomicMethod: AtomicMethod, openAPI: OpenAPI, typeDef: Type, testBuilder: TestBuilder) {
         val parameters = getParameters(atomicMethod, openAPI)
 
         val successResponses = atomicMethod.operation.responses
@@ -82,7 +84,7 @@ object PathsBuilder {
             .joinToString("\n")
             .replace("\n", "\n * ")
 
-        val params = parameters.joinToString(",\n") { buildParameter(it, atomicMethod, typeDef) }
+        val params = parameters.joinToString(",\n") { buildParameter(it, atomicMethod, typeDef, testBuilder) }
         val successResponse = successResponses.entries.sortedBy {it.key}.firstOrNull()
 
         if (successResponse == null || successResponse.value.content == null) {
@@ -111,6 +113,11 @@ object PathsBuilder {
                         else -> atomicMethod.operationId.split('/')[1].camelCase() + suffixContentType(contentType)
                     }
                     val pathParam = if (atomicMethod.path == "/") """"?"""" else """"${atomicMethod.path.substring(1)}""""
+                    details.examples?.forEach { (k, v) ->
+                        if (v.value != null) {
+                            testBuilder.addTest("${atomicMethod.operationId.split("/")[1]}Response${k.pascalCase()}", v.value.toString(), respRef)
+                        }
+                    }
                     typeDef.rawBody(
                         listOf(
                             "/**\n * ${javadoc}\n */",
@@ -165,7 +172,7 @@ object PathsBuilder {
         return javadoc
     }
 
-    private fun buildParameter(theParameter: Parameter, atomicMethod: AtomicMethod, typeDef: Type): String {
+    private fun buildParameter(theParameter: Parameter, atomicMethod: AtomicMethod, typeDef: Type, testBuilder: TestBuilder): String {
         val (ref, def) = mapOf(theParameter.name to theParameter.schema).entries.first().referenceAndDefinition()!!
         val newDef = def?.copy(name = atomicMethod.operationId.split('/')[1].pascalCase() + def.name)
         newDef?.let { typeDef.subType(it) }
@@ -173,7 +180,14 @@ object PathsBuilder {
         val paramName = theParameter.name.unkeywordize().camelCase()
         return "    " + when (theParameter.`in`) {
             "query" -> "@Query(\"${theParameter.name}\")"
-            "body" -> "@Body"
+            "body" -> {
+                theParameter.examples?.forEach { (k, v) ->
+                    if (v.value != null && !v.value.toString().startsWith("@")) {
+                        testBuilder.addTest("${atomicMethod.operationId.split("/")[1]}_${paramName}_${k}", v.value.toString(), newDef?.name ?: ref)
+                    }
+                }
+                "@Body"
+            }
             "path" -> "@Path(\"${theParameter.name}\")"
             "header" -> "@Header(\"${theParameter.name}\")"
             else -> throw IllegalArgumentException("Unknown parameter type: ${theParameter.`in`}")
@@ -199,6 +213,7 @@ object PathsBuilder {
                     .name("body")
                     .description(requestBody.description ?: "The request body")
                     .schema(requestBody.content.firstEntry().value.schema)
+                    .examples(requestBody.content.firstEntry().value.examples)
                     .required(true)
             )
         }
