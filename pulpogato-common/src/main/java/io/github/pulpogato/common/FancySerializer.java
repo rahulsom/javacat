@@ -2,6 +2,7 @@ package io.github.pulpogato.common;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -82,7 +83,7 @@ public class FancySerializer<T> extends StdSerializer<T> {
                 .map(x -> {
                     try {
                         String string = om.writeValueAsString(x);
-                        return om.readValue(string, LinkedHashMap.class);
+                        return om.readValue(string, new TypeReference<Map<String, Object>>() {});
                     } catch (JsonProcessingException ignored) {
                         return null;
                     }
