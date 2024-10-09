@@ -7,7 +7,7 @@ dependencies {
     api(libs.assertj)
 
     implementation("javax.json:javax.json-api:1.1.4")
-    implementation("org.glassfish:javax.json:1.1.2")
+    implementation("org.glassfish:javax.json:1.1.4")
 
     implementation(libs.bundles.jackson)
 }
