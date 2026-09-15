@@ -10,7 +10,9 @@ import io.github.pulpogato.common.client.JwtFilter;
 import io.github.pulpogato.common.client.MetricsClientHttpRequestInterceptor;
 import io.github.pulpogato.common.client.MetricsExchangeFunction;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
 import java.io.StringWriter;
 import java.security.KeyPairGenerator;
 import java.util.List;
@@ -66,6 +68,24 @@ class DocumentationIntegrationTest {
         // end::setup-cache-restclient[]
 
         assertThat(cachingClient).isNotNull();
+    }
+
+    @Test
+    void setupCacheMetrics() {
+        Cache cache = new ConcurrentMapCache("github-http-cache");
+
+        // tag::setup-cache-metrics[]
+        var meterRegistry = new SimpleMeterRegistry();
+        var observationRegistry = ObservationRegistry.create();
+        observationRegistry.observationConfig().observationHandler(new DefaultMeterObservationHandler(meterRegistry));
+
+        var cachingFilter = CachingExchangeFilterFunction.builder()
+                .cache(cache)
+                .observationRegistry(observationRegistry)
+                .build();
+        // end::setup-cache-metrics[]
+
+        assertThat(cachingFilter).isNotNull();
     }
 
     @Test

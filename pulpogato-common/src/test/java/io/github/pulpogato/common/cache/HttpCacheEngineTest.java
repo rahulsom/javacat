@@ -5,6 +5,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Clock;
 import java.time.Instant;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.cache.Cache;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 
 class HttpCacheEngineTest {
 
@@ -26,7 +29,7 @@ class HttpCacheEngineTest {
     private final Clock clock = Clock.fixed(Instant.ofEpochMilli(CURRENT_TIME), ZoneId.of("UTC"));
 
     private HttpCacheEngine engine(boolean alwaysRevalidate) {
-        return new HttpCacheEngine(cache, clock, ObservationRegistry.NOOP, 1024, alwaysRevalidate);
+        return new HttpCacheEngine(cache, clock, ObservationRegistry.NOOP, 1024, alwaysRevalidate, "test");
     }
 
     @Nested
@@ -131,6 +134,15 @@ class HttpCacheEngineTest {
         void rejectsOversizedContent() {
             assertThat(engine(false).shouldCache("\"etag\"", null, -1, 2048)).isFalse();
         }
+
+        @Test
+        @DisplayName("identifies why a response is not cacheable")
+        void identifiesSkipReason() {
+            assertThat(engine(false).skipReason(null, null, -1, 10)).isEqualTo(HttpCacheEngine.SKIP_NO_CACHE_HEADERS);
+            assertThat(engine(false).skipReason("\"etag\"", null, -1, 2048))
+                    .isEqualTo(HttpCacheEngine.SKIP_CONTENT_LENGTH);
+            assertThat(engine(false).skipReason("\"etag\"", null, -1, 10)).isNull();
+        }
     }
 
     @Nested
@@ -141,6 +153,50 @@ class HttpCacheEngineTest {
         void exceedsWhenOverLimit() {
             assertThat(engine(false).exceedsMaxCacheableSize(2048)).isTrue();
             assertThat(engine(false).exceedsMaxCacheableSize(1024)).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("metrics")
+    class MetricsTests {
+
+        @Test
+        @DisplayName("emits timers with low-cardinality dimensions")
+        void emitsMeterBackedObservations() {
+            var meterRegistry = new SimpleMeterRegistry();
+            var observationRegistry = ObservationRegistry.create();
+            observationRegistry
+                    .observationConfig()
+                    .observationHandler(new DefaultMeterObservationHandler(meterRegistry));
+            var namedCache = new ConcurrentMapCache("github-http-cache");
+            var engine = new HttpCacheEngine(namedCache, clock, observationRegistry, 1024, false, "WebClient");
+
+            engine.lookup(CACHE_KEY, URI, null);
+            engine.recordSkip(CACHE_KEY, URI, HttpCacheEngine.SKIP_NO_CACHE_HEADERS, null);
+
+            var getTimer = meterRegistry
+                    .get("pulpogato.cache.get")
+                    .tags(
+                            "cache.status", "MISS",
+                            "cache.name", "github-http-cache",
+                            "cache.client", "WebClient",
+                            "server.address", "api.github.com")
+                    .timer();
+            var putTimer = meterRegistry
+                    .get("pulpogato.cache.put")
+                    .tags(
+                            "cache.status", "SKIP",
+                            "cache.skip.reason", "NO_CACHE_HEADERS",
+                            "cache.name", "github-http-cache",
+                            "cache.client", "WebClient",
+                            "server.address", "api.github.com")
+                    .timer();
+
+            assertThat(getTimer.count()).isEqualTo(1);
+            assertThat(putTimer.count()).isEqualTo(1);
+            assertThat(getTimer.getId().getTag("uri")).isNull();
+            assertThat(getTimer.getId().getTag("cache.key")).isNull();
+            meterRegistry.close();
         }
     }
 

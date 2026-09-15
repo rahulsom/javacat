@@ -70,6 +70,7 @@ public class CachingExchangeFilterFunction implements ExchangeFilterFunction {
             .build();
 
     private static final String OBSERVATION_CONTEXT_KEY = "micrometer.observation";
+    private static final String CLIENT_TYPE = "WebClient";
 
     private final DefaultDataBufferFactory bufferFactory = new DefaultDataBufferFactory();
 
@@ -117,7 +118,7 @@ public class CachingExchangeFilterFunction implements ExchangeFilterFunction {
     private final HttpCacheEngine engine = engine();
 
     private HttpCacheEngine engine() {
-        return new HttpCacheEngine(cache, clock, observationRegistry, maxCacheableSize, alwaysRevalidate);
+        return new HttpCacheEngine(cache, clock, observationRegistry, maxCacheableSize, alwaysRevalidate, CLIENT_TYPE);
     }
 
     @Override
@@ -202,16 +203,17 @@ public class CachingExchangeFilterFunction implements ExchangeFilterFunction {
         var cacheControl = headers.getFirst("Cache-Control");
 
         var maxAge = HttpCacheEngine.parseMaxAge(cacheControl);
+        var uri = request.url().toString();
 
         // Only cache if there are caching headers, and the (known) length is within the limit
-        if (!getEngine().shouldCache(etag, lastModified, maxAge, headers.getContentLength())) {
+        var skipReason = getEngine().skipReason(etag, lastModified, maxAge, headers.getContentLength());
+        if (skipReason != null) {
+            getEngine().recordSkip(cacheKey, uri, skipReason, parent);
             return Mono.just(response);
         }
 
         // Copy headers to a plain Map for serialization.
         var headerMap = toMap(headers);
-
-        var uri = request.url().toString();
 
         // Buffer the response body and check size
         return response.body(BodyExtractors.toDataBuffers())
@@ -227,7 +229,7 @@ public class CachingExchangeFilterFunction implements ExchangeFilterFunction {
                 .map(body -> {
                     // If the response is too large, skip caching but still return the data
                     if (getEngine().exceedsMaxCacheableSize(body.length)) {
-                        getEngine().recordPut(cacheKey, uri, HttpCacheEngine.CACHE_SKIP, null, parent);
+                        getEngine().recordSkip(cacheKey, uri, HttpCacheEngine.SKIP_BODY_SIZE, parent);
                         return ClientResponse.create(response.statusCode(), LARGE_BUFFER_STRATEGIES)
                                 .headers(h -> h.putAll(headerMap))
                                 .header(HttpCacheEngine.CACHE_HEADER_NAME, HttpCacheEngine.CACHE_SKIP)

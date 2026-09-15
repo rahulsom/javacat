@@ -749,6 +749,9 @@ class CachingClientHttpRequestInterceptorTest {
                     .hasObservationWithNameEqualTo(CACHE_GET)
                     .that()
                     .hasLowCardinalityKeyValue(HttpCacheEngine.CACHE_STATUS, HttpCacheEngine.CACHE_MISS)
+                    .hasLowCardinalityKeyValue("cache.name", "unknown")
+                    .hasLowCardinalityKeyValue("cache.client", "RestClient")
+                    .hasLowCardinalityKeyValue("server.address", "api.example.com")
                     .hasHighCardinalityKeyValue("uri", TEST_URL)
                     .hasHighCardinalityKeyValue("cache.key", CACHE_KEY)
                     .backToTestObservationRegistry()
@@ -845,7 +848,45 @@ class CachingClientHttpRequestInterceptorTest {
             TestObservationRegistryAssert.assertThat(observationRegistry)
                     .hasObservationWithNameEqualTo(CACHE_PUT)
                     .that()
-                    .hasLowCardinalityKeyValue(HttpCacheEngine.CACHE_STATUS, HttpCacheEngine.CACHE_SKIP);
+                    .hasLowCardinalityKeyValue(HttpCacheEngine.CACHE_STATUS, HttpCacheEngine.CACHE_SKIP)
+                    .hasLowCardinalityKeyValue("cache.skip.reason", HttpCacheEngine.SKIP_BODY_SIZE);
+        }
+
+        @Test
+        @DisplayName("Known oversized response records its cache.put SKIP reason")
+        void knownOversizedResponseRecordsSkipStore() throws Exception {
+            when(cacheKeyMapper.apply(any(HttpRequest.class))).thenReturn(CACHE_KEY);
+            when(cache.get(CACHE_KEY, CachedResponse.class)).thenReturn(null);
+            var headers = new HttpHeaders();
+            headers.set("ETag", "\"too-large\"");
+            headers.setContentLength(2000);
+            var response = new TestClientHttpResponse(HttpStatus.OK, headers, new byte[2000]);
+            when(execution.execute(any(), any())).thenReturn(response);
+
+            observedInterceptor(1000).intercept(createGetRequest(), new byte[0], execution);
+
+            TestObservationRegistryAssert.assertThat(observationRegistry)
+                    .hasObservationWithNameEqualTo(CACHE_PUT)
+                    .that()
+                    .hasLowCardinalityKeyValue(HttpCacheEngine.CACHE_STATUS, HttpCacheEngine.CACHE_SKIP)
+                    .hasLowCardinalityKeyValue("cache.skip.reason", HttpCacheEngine.SKIP_CONTENT_LENGTH);
+        }
+
+        @Test
+        @DisplayName("Response without cache headers records its cache.put SKIP reason")
+        void responseWithoutCacheHeadersRecordsSkipStore() throws Exception {
+            when(cacheKeyMapper.apply(any(HttpRequest.class))).thenReturn(CACHE_KEY);
+            when(cache.get(CACHE_KEY, CachedResponse.class)).thenReturn(null);
+            when(execution.execute(any(), any())).thenReturn(createResponse(null, null, null));
+
+            observedInterceptor(CachingClientHttpRequestInterceptor.DEFAULT_MAX_CACHEABLE_SIZE)
+                    .intercept(createGetRequest(), new byte[0], execution);
+
+            TestObservationRegistryAssert.assertThat(observationRegistry)
+                    .hasObservationWithNameEqualTo(CACHE_PUT)
+                    .that()
+                    .hasLowCardinalityKeyValue(HttpCacheEngine.CACHE_STATUS, HttpCacheEngine.CACHE_SKIP)
+                    .hasLowCardinalityKeyValue("cache.skip.reason", HttpCacheEngine.SKIP_NO_CACHE_HEADERS);
         }
     }
 }

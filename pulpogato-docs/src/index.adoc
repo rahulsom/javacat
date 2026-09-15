@@ -379,7 +379,22 @@ The response includes an `X-Pulpogato-Cache` header indicating the cache status:
 * `INVALIDATED` - Cache entry was stale; server returned a fresh 200, invalidating the stored value, which is replaced with the new response
 * `SKIP` - Response too large to cache (still returned to caller)
 
-When an `ObservationRegistry` is configured, each lookup and store is also recorded as a Micrometer observation (`pulpogato.cache.get` / `pulpogato.cache.put`) tagged with a matching `cache.status` (`HIT`/`STALE`/`MISS` on the get, `STORED`/`REVALIDATED`/`INVALIDATED`/`SKIP` on the put), so the same HIT/MISS/REVALIDATED/INVALIDATED outcomes shown in the header are also visible in metrics and tracing.
+When an `ObservationRegistry` is configured, each lookup and store decision is also recorded as a Micrometer observation (`pulpogato.cache.get` / `pulpogato.cache.put`) tagged with a matching `cache.status` (`HIT`/`STALE`/`MISS`/`UNKNOWN` on the get, `STORED`/`REVALIDATED`/`INVALIDATED`/`SKIP` on the put), so the same HIT/MISS/REVALIDATED/INVALIDATED outcomes shown in the header are also visible in metrics and tracing.
+Both observations have low-cardinality `cache.name`, `cache.client`, and `server.address` tags.
+They also have high-cardinality `uri` and `cache.key` values for tracing; the default cache key is a SHA-256 hash.
+Stores have a low-cardinality `cache.skip.reason` of `NONE`, `NO_CACHE_HEADERS`, `CONTENT_LENGTH`, or `BODY_SIZE`.
+
+=== Cache Metrics Setup
+
+[source,java,indent=0]
+----
+include::../../pulpogato-common/src/test/java/io/github/pulpogato/common/DocumentationIntegrationTest.java[tags=setup-cache-metrics]
+----
+
+The cache builders default to `ObservationRegistry.NOOP`.
+A meter-backed observation registry makes `pulpogato.cache.get` and `pulpogato.cache.put` available as timers, whose counts can be used to calculate hit and revalidation ratios.
+Spring Boot applications can instead inject the auto-configured `ObservationRegistry` to integrate with both metrics and tracing.
+Cache size, entry, and eviction metrics depend on the configured Spring `Cache` provider and should be registered through that provider's Micrometer binder.
 
 === Advanced Caching Options
 

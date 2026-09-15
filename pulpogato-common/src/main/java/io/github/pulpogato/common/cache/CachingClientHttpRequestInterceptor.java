@@ -59,6 +59,8 @@ import org.springframework.http.client.ClientHttpResponse;
 @Builder
 public class CachingClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
 
+    private static final String CLIENT_TYPE = "RestClient";
+
     /**
      * Default maximum size for cacheable responses (2MB).
      */
@@ -108,7 +110,7 @@ public class CachingClientHttpRequestInterceptor implements ClientHttpRequestInt
     private final HttpCacheEngine engine = engine();
 
     private HttpCacheEngine engine() {
-        return new HttpCacheEngine(cache, clock, observationRegistry, maxCacheableSize, alwaysRevalidate);
+        return new HttpCacheEngine(cache, clock, observationRegistry, maxCacheableSize, alwaysRevalidate, CLIENT_TYPE);
     }
 
     @Override
@@ -181,7 +183,9 @@ public class CachingClientHttpRequestInterceptor implements ClientHttpRequestInt
         var maxAge = HttpCacheEngine.parseMaxAge(cacheControl);
 
         // Only cache if there are caching headers, and the (known) length is within the limit
-        if (!getEngine().shouldCache(etag, lastModified, maxAge, headers.getContentLength())) {
+        var skipReason = getEngine().skipReason(etag, lastModified, maxAge, headers.getContentLength());
+        if (skipReason != null) {
+            getEngine().recordSkip(cacheKey, uri, skipReason, parent);
             return response;
         }
 
@@ -198,7 +202,7 @@ public class CachingClientHttpRequestInterceptor implements ClientHttpRequestInt
 
         // If the response is too large, skip caching but still return the data
         if (getEngine().exceedsMaxCacheableSize(responseBody.length)) {
-            getEngine().recordPut(cacheKey, uri, HttpCacheEngine.CACHE_SKIP, null, parent);
+            getEngine().recordSkip(cacheKey, uri, HttpCacheEngine.SKIP_BODY_SIZE, parent);
             return new BufferedClientHttpResponse(
                     statusCode,
                     headersWith(headerMap, HttpCacheEngine.CACHE_HEADER_NAME, HttpCacheEngine.CACHE_SKIP),
