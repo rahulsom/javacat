@@ -737,6 +737,7 @@ pre.rouge {
 <li><a href="#_http_caching">HTTP Caching</a>
 <ul class="sectlevel2">
 <li><a href="#_basic_caching_setup">Basic Caching Setup</a></li>
+<li><a href="#_cache_metrics_setup">Cache Metrics Setup</a></li>
 <li><a href="#_advanced_caching_options">Advanced Caching Options</a></li>
 <li><a href="#_basic_caching_setup_restclient">Basic Caching Setup (RestClient)</a></li>
 <li><a href="#_advanced_caching_options_restclient">Advanced Caching Options (RestClient)</a></li>
@@ -1852,7 +1853,31 @@ This can significantly reduce API calls and improve performance.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>When an <code>ObservationRegistry</code> is configured, each lookup and store is also recorded as a Micrometer observation (<code>pulpogato.cache.get</code> / <code>pulpogato.cache.put</code>) tagged with a matching <code>cache.status</code> (<code>HIT</code>/<code>STALE</code>/<code>MISS</code> on the get, <code>STORED</code>/<code>REVALIDATED</code>/<code>INVALIDATED</code>/<code>SKIP</code> on the put), so the same HIT/MISS/REVALIDATED/INVALIDATED outcomes shown in the header are also visible in metrics and tracing.</p>
+<p>When an <code>ObservationRegistry</code> is configured, each lookup and store decision is also recorded as a Micrometer observation (<code>pulpogato.cache.get</code> / <code>pulpogato.cache.put</code>) tagged with a matching <code>cache.status</code> (<code>HIT</code>/<code>STALE</code>/<code>MISS</code>/<code>UNKNOWN</code> on the get, <code>STORED</code>/<code>REVALIDATED</code>/<code>INVALIDATED</code>/<code>SKIP</code> on the put), so the same HIT/MISS/REVALIDATED/INVALIDATED outcomes shown in the header are also visible in metrics and tracing.
+Both observations have low-cardinality <code>cache.name</code>, <code>cache.client</code>, and <code>server.address</code> tags.
+They also have high-cardinality <code>uri</code> and <code>cache.key</code> values for tracing; the default cache key is a SHA-256 hash.
+Stores have a low-cardinality <code>cache.skip.reason</code> of <code>NONE</code>, <code>NO_CACHE_HEADERS</code>, <code>CONTENT_LENGTH</code>, or <code>BODY_SIZE</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cache_metrics_setup">Cache Metrics Setup</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kt">var</span> <span class="n">meterRegistry</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleMeterRegistry</span><span class="o">();</span>
+<span class="kt">var</span> <span class="n">observationRegistry</span> <span class="o">=</span> <span class="nc">ObservationRegistry</span><span class="o">.</span><span class="na">create</span><span class="o">();</span>
+<span class="n">observationRegistry</span><span class="o">.</span><span class="na">observationConfig</span><span class="o">().</span><span class="na">observationHandler</span><span class="o">(</span><span class="k">new</span> <span class="nc">DefaultMeterObservationHandler</span><span class="o">(</span><span class="n">meterRegistry</span><span class="o">));</span>
+
+<span class="kt">var</span> <span class="n">cachingFilter</span> <span class="o">=</span> <span class="nc">CachingExchangeFilterFunction</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">cache</span><span class="o">(</span><span class="n">cache</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">observationRegistry</span><span class="o">(</span><span class="n">observationRegistry</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The cache builders default to <code>ObservationRegistry.NOOP</code>.
+A meter-backed observation registry makes <code>pulpogato.cache.get</code> and <code>pulpogato.cache.put</code> available as timers, whose counts can be used to calculate hit and revalidation ratios.
+Spring Boot applications can instead inject the auto-configured <code>ObservationRegistry</code> to integrate with both metrics and tracing.
+Cache size, entry, and eviction metrics depend on the configured Spring <code>Cache</code> provider and should be registered through that provider&#8217;s Micrometer binder.</p>
 </div>
 </div>
 <div class="sect2">
